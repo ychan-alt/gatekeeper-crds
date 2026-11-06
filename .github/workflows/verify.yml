@@ -26,3 +26,19 @@ jobs:
           version: v3.22.1
       - name: Prove what helm actually renders matches upstream too
         run: python3 tools/crdkit.py render-check
+
+      # ---------------------------------------------------------------------
+      # Additional validation steps (optional but recommended for prod‑ready)
+      # ---------------------------------------------------------------------
+      - name: Install kubeconform for schema validation
+        run: |
+          go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Validate generated CRDs with kubeconform
+        run: |
+          kubeconform -strict -ignore-missing-schemas -summary gatekeeper-crds/charts/**/templates/*.yaml
+
+      - name: Lint Helm chart with helm lint
+        run: |
+          helm lint gatekeeper-crds/charts/**
