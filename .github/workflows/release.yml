@@ -35,23 +35,18 @@ jobs:
         run: |
           set -euo pipefail
           want="${{ inputs.chart }}"
-          names=$(ls charts)
-          if [ -n "$want" ]; then names="$want"; fi
-          out=""
-          for n in $names; do
-            v=$(python3 -c "import sys,yaml;print(yaml.safe_load(open('charts/$n/Chart.yaml'))['version'])")
-            out="$out $n:$v"
-          done
-          echo "charts=$(echo $out | xargs)" >> "$GITHUB_OUTPUT"
+          if [ -n "$want" ]; then names="$want"; else names=$(ls charts); fi
+          python3 -c 'import json,sys;print(json.dumps(sys.argv[1:]))' $names > /tmp/names.json
+          echo "charts=$(cat /tmp/names.json)" >> "$GITHUB_OUTPUT"
 
   publish:
     needs: plan
-    if: needs.plan.outputs.charts != ''
+    if: needs.plan.outputs.charts != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        chart: ${{ fromJson(format('[{0}]', replace(needs.plan.outputs.charts, ' ', '},{'))) }}
+        chart: ${{ fromJson(needs.plan.outputs.charts) }}
     permissions:
       contents: write        # releases
       packages: write        # GHCR
@@ -67,8 +62,7 @@ jobs:
       - name: Prove the chart still matches upstream before publishing
         run: |
           set -euo pipefail
-          name="${{ matrix.chart }}"; name="${name%%:*}"
-          python3 tools/crdkit.py verify --chart "$name"
+          python3 tools/crdkit.py verify --chart "${{ matrix.chart }}"
           python3 tools/crdkit.py render-check --chart "$name"
 
       - uses: azure/setup-helm@v4
@@ -80,7 +74,7 @@ jobs:
         id: package
         run: |
           set -euo pipefail
-          name="${{ matrix.chart }}"; name="${name%%:*}"
+          name="${{ matrix.chart }}"
           mkdir -p dist
           helm package "charts/$name" -d dist
           tgz=$(ls dist/"$name"-*.tgz | head -1)
