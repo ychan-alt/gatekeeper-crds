@@ -59,16 +59,16 @@ jobs:
           python-version: "3.12"
       - run: pip install --quiet pyyaml
 
-      - name: Prove the chart still matches upstream before publishing
-        run: |
-          set -euo pipefail
-          python3 tools/crdkit.py verify --chart "${{ matrix.chart }}"
-          python3 tools/crdkit.py render-check --chart "$name"
-
       - uses: azure/setup-helm@v4
         with:
           version: v3.22.1
       - uses: sigstore/cosign-installer@v3
+
+      - name: Prove the chart still matches upstream before publishing
+        run: |
+          set -euo pipefail
+          python3 tools/crdkit.py verify --chart "${{ matrix.chart }}"
+          python3 tools/crdkit.py render-check --chart "${{ matrix.chart }}"
 
       - name: Package
         id: package
@@ -97,8 +97,19 @@ jobs:
             echo "fresh=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          helm push "${{ steps.package.outputs.tgz }}" "oci://$OCI_PATH"
-          echo "fresh=true" >> "$GITHUB_OUTPUT"
+          set +e
+          helm push "${{ steps.package.outputs.tgz }}" "oci://$OCI_PATH" 2>&1 | tee /tmp/push.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+          elif grep -qiE 'already exists|conflict' /tmp/push.log; then
+            echo "::notice::$ref already exists in the registry — not overwriting (a pinned digest must not move)"
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::helm push failed"
+            exit 1
+          fi
 
       - name: Sign (cosign, keyless)
         if: steps.push.outputs.fresh == 'true'

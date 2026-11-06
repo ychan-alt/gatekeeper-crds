@@ -20,3 +20,9 @@ jobs:
       - run: pip install --quiet pyyaml
       - name: Prove the templates match the pinned upstream asset
         run: python3 tools/crdkit.py verify
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.22.1
+      - name: Prove what helm actually renders matches upstream too
+        run: python3 tools/crdkit.py render-check
