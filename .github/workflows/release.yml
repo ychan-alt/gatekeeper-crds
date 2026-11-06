@@ -16,6 +16,9 @@ on:
       chart:
         description: Chart name (empty = all)
         default: ""
+      tag:
+        description: Mint and publish this upstream tag instead of the pinned one (e.g. v1.6.2), without touching the pin or the tree
+        default: ""
 
 permissions:
   contents: read
@@ -72,19 +75,37 @@ jobs:
           chmod +x /usr/local/bin/cosign
           cosign version
 
+      - name: Resolve the chart source
+        id: src
+        run: |
+          set -euo pipefail
+          name="${{ matrix.chart }}"
+          tag="${{ inputs.tag }}"
+          if [ -n "$tag" ]; then
+            python3 tools/crdkit.py generate --chart "$name" --tag "$tag" --out /tmp/mint
+            echo "dir=/tmp/mint/charts/$name" >> "$GITHUB_OUTPUT"
+            echo "out=/tmp/mint" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=charts/$name" >> "$GITHUB_OUTPUT"
+            echo "out=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Prove the chart still matches upstream before publishing
         run: |
           set -euo pipefail
-          python3 tools/crdkit.py verify --chart "${{ matrix.chart }}"
-          python3 tools/crdkit.py render-check --chart "${{ matrix.chart }}"
+          o="${{ steps.src.outputs.out }}"
+          if [ -n "$o" ]; then o="--out $o"; fi
+          python3 tools/crdkit.py verify --chart "${{ matrix.chart }}" $o
+          python3 tools/crdkit.py render-check --chart "${{ matrix.chart }}" $o
 
       - name: Package
         id: package
         run: |
           set -euo pipefail
           name="${{ matrix.chart }}"
+          dir="${{ steps.src.outputs.dir }}"
           mkdir -p dist
-          helm package "charts/$name" -d dist
+          helm package "$dir" -d dist
           tgz=$(ls dist/"$name"-*.tgz | head -1)
           echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
