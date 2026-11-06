@@ -62,7 +62,15 @@ jobs:
       - uses: azure/setup-helm@v4
         with:
           version: v3.22.1
-      - uses: sigstore/cosign-installer@v3
+
+      - name: Install cosign (pinned)
+        run: |
+          set -euo pipefail
+          ver=v3.1.4
+          curl -fsSL -o /usr/local/bin/cosign \
+            "https://github.com/sigstore/cosign/releases/download/${ver}/cosign-linux-amd64"
+          chmod +x /usr/local/bin/cosign
+          cosign version
 
       - name: Prove the chart still matches upstream before publishing
         run: |
@@ -91,7 +99,7 @@ jobs:
           ver="$(python3 -c "import yaml;print(yaml.safe_load(open('charts/$name/Chart.yaml'))['version'])")"
           ref="$OCI_PATH/$name:$ver"
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
-          echo "${{ github.token }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+          echo "${{ secrets.GHCR_TOKEN || github.token }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
           if helm show chart "oci://$OCI_PATH/$name" --version "$ver" >/dev/null 2>&1; then
             echo "::notice::$ref already published — not overwriting"
             echo "fresh=false" >> "$GITHUB_OUTPUT"
@@ -106,6 +114,14 @@ jobs:
           elif grep -qiE 'already exists|conflict' /tmp/push.log; then
             echo "::notice::$ref already exists in the registry — not overwriting (a pinned digest must not move)"
             echo "fresh=false" >> "$GITHUB_OUTPUT"
+          elif grep -q '403' /tmp/push.log; then
+            echo "::error::GHCR refused this workflow's token. The package is not linked to the"
+            echo "::error::repository (it was first published outside CI, which leaves it"
+            echo "::error::user-scoped). Fix once, in the package settings: 'Connect repository'"
+            echo "::error::→ this repo. Then GITHUB_TOKEN (packages: write) can publish and read."
+            echo "::error::https://github.com/users/${{ github.repository_owner }}/packages/container/charts%2F$name/settings"
+            echo "::error::Alternatively add a repo secret GHCR_TOKEN holding a PAT with write:packages."
+            exit 1
           else
             echo "::error::helm push failed"
             exit 1
