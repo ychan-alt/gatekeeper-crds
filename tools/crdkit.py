@@ -216,8 +216,16 @@ workflows) is Apache-2.0, see ../LICENSE.
 
 # ---------------------------------------------------------------- verbs
 
-def generate(charts: dict, only: str | None, tag_override: str | None, bump: bool) -> int:
+def generate(charts: dict, only: str | None, tag_override: str | None, bump: bool,
+             out: str | None = None) -> int:
+    """Write charts/<name>/ from the pinned asset.
+
+    `out` writes the chart somewhere other than the repo — that is how an older
+    version is minted as a rollback target without moving the pin, and without
+    the repo tree ever describing a version nobody runs.
+    """
     changed = []
+    moved_pin = False
     for name, spec in charts.items():
         if only and name != only:
             continue
@@ -243,7 +251,7 @@ def generate(charts: dict, only: str | None, tag_override: str | None, bump: boo
             log(f"{name}: upstream yielded no CustomResourceDefinition — aborting")
             return 2
 
-        dest = ROOT / "charts" / name
+        dest = Path(out).resolve() / "charts" / name if out else ROOT / "charts" / name
         (dest / "templates").mkdir(parents=True, exist_ok=True)
         (dest / "Chart.yaml").write_text(chart_yaml(spec, name, tag, url, sha))
         (dest / "values.yaml").write_text(
@@ -253,12 +261,14 @@ def generate(charts: dict, only: str | None, tag_override: str | None, bump: boo
         (dest / "README.md").write_text(chart_readme(spec, name, tag, url, sha, sorted(dropped)))
         (dest / "NOTICE").write_text(notice(spec, name, tag, url, sha))
 
-        if spec["upstream"]["current"] != tag:
+        if not out and spec["upstream"]["current"] != tag:
             spec["upstream"]["current"] = tag
+            moved_pin = True
         changed.append(f"{name} {tag} ({len(kept)} CRDs, {len(raw)} bytes)")
-        log(f"{name}: wrote {len(kept)} CRDs at {tag}")
+        log(f"{name}: wrote {len(kept)} CRDs at {tag} into {dest}")
     if changed:
-        save_sources(charts)
+        if moved_pin:
+            save_sources(charts)
         print("\n".join(changed))
     return 0
 
@@ -290,19 +300,20 @@ def compare(up: dict, got: dict, label: str) -> int:
     return failures
 
 
-def render_check(charts: dict, only: str | None) -> int:
+def render_check(charts: dict, only: str | None, out: str | None = None) -> int:
     """End-to-end: what `helm template` actually emits must equal upstream too."""
     helm = shutil.which("helm")
     if not helm:
         log("helm not on PATH — render check skipped")
         return 0
+    root = Path(out).resolve() if out else ROOT
     failures = 0
     for name, spec in charts.items():
         if only and name != only:
             continue
         tag = spec["upstream"]["current"]
         log(f"{name}: rendering with {helm}")
-        proc = subprocess.run([helm, "template", "render-check", str(ROOT / "charts" / name)],
+        proc = subprocess.run([helm, "template", "render-check", str(root / "charts" / name)],
                               capture_output=True, text=True)
         if proc.returncode != 0:
             log(f"  FAIL helm template failed:\n{proc.stderr}")
@@ -317,16 +328,30 @@ def render_check(charts: dict, only: str | None) -> int:
     return 1 if failures else 0
 
 
-def verify(charts: dict, only: str | None) -> int:
+def verify(charts: dict, only: str | None, out: str | None = None) -> int:
+    root = Path(out).resolve() if out else ROOT
     failures = 0
     for name, spec in charts.items():
         if only and name != only:
             continue
-        tag = spec["upstream"]["current"]
+        chart_path = root / "charts" / name / "Chart.yaml"
+        if not chart_path.exists():
+            log(f"  FAIL no Chart.yaml at {chart_path}")
+            failures += 1
+            continue
+        chart = yaml.safe_load(chart_path.read_text())
+        # The chart's own appVersion names the upstream tag it claims to be built
+        # from — that is what we verify against, so a minted (older) chart is
+        # checked against its own asset rather than against the repo's pin.
+        tag = str(chart.get("appVersion") or spec["upstream"]["current"])
+        if not out and tag != spec["upstream"]["current"]:
+            log(f"  FAIL Chart.yaml appVersion {tag} != pinned {spec['upstream']['current']} "
+                f"(the tree must describe the pinned version)")
+            failures += 1
         log(f"{name}: verifying against {tag}")
         up_docs, up_dropped = upstream_docs(spec, tag)
         up = {ref(d): d for d in up_docs}
-        tpl = ROOT / "charts" / name / "templates" / "crds.yaml"
+        tpl = root / "charts" / name / "templates" / "crds.yaml"
         if not tpl.exists():
             log(f"  FAIL no template at {tpl}")
             failures += 1
@@ -335,12 +360,8 @@ def verify(charts: dict, only: str | None) -> int:
 
         failures += compare(up, got, "template")
 
-        chart = yaml.safe_load((ROOT / "charts" / name / "Chart.yaml").read_text())
         if str(chart.get("version")) != tag.lstrip("v"):
             log(f"  FAIL Chart.yaml version {chart.get('version')} != {tag.lstrip('v')}")
-            failures += 1
-        if chart.get("appVersion") != tag:
-            log(f"  FAIL Chart.yaml appVersion {chart.get('appVersion')} != {tag}")
             failures += 1
         dropped_note = sorted(up_dropped)
         if dropped_note:
@@ -394,20 +415,23 @@ def main() -> int:
     g.add_argument("--chart")
     g.add_argument("--tag")
     g.add_argument("--bump", action="store_true")
+    g.add_argument("--out", help="write outside the repo (minting an older version)")
     v = sub.add_parser("verify")
     v.add_argument("--chart")
+    v.add_argument("--out")
     r = sub.add_parser("render-check")
     r.add_argument("--chart")
+    r.add_argument("--out")
     c = sub.add_parser("check-upstreams")
     c.add_argument("--json", action="store_true")
     args = ap.parse_args()
     charts = load_sources()
     if args.verb == "generate":
-        return generate(charts, args.chart, args.tag, args.bump)
+        return generate(charts, args.chart, args.tag, args.bump, args.out)
     if args.verb == "verify":
-        return verify(charts, args.chart)
+        return verify(charts, args.chart, args.out)
     if args.verb == "render-check":
-        return render_check(charts, args.chart)
+        return render_check(charts, args.chart, args.out)
     return check_upstreams(charts, args.json)
 
 

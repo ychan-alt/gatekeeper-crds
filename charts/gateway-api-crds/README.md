@@ -1,11 +1,11 @@
 # gateway-api-crds
 
 CustomResourceDefinitions vendored from [https://github.com/kubernetes-sigs/gateway-api](https://github.com/kubernetes-sigs/gateway-api) — tag
-[`v1.6.3`](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.3), asset `https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml` (sha256 `356c2b8e286a964dc20995435659ad1095386329974793af10bbfe3eff977fe5`),
+[`v1.7.0`](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.7.0), asset `https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.7.0/standard-install.yaml` (sha256 `4e2602c4cbe1afbc394d86f4ac6522e1a5263b01133bba1e40a6d1a549e753a1`),
 licence Apache-2.0.
 
 ```sh
-helm upgrade --install gateway-api-crds oci://ghcr.io/ychan-alt/charts/gateway-api-crds --version 1.6.3 \
+helm upgrade --install gateway-api-crds oci://ghcr.io/ychan-alt/charts/gateway-api-crds --version 1.7.0 \
   -n gateway-api-crds --create-namespace --take-ownership --force-conflicts
 ```
 

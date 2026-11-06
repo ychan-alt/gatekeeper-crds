@@ -61,6 +61,26 @@ Adding a chart is one block in `sources/charts.yaml` (e.g. `traefik-crds` from
 `raw.githubusercontent.com/traefik/traefik/<tag>/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml`,
 once Traefik 3.8.0 GA is tagged) and one `crdkit generate`.
 
+## Minting an older version (a rollback target)
+
+The tree always describes **the pinned version**. Never downgrade the pin to
+manufacture an older chart — that makes the repo stop describing what your
+clusters actually run, and it does not create a second version: the generator has
+one output directory per chart. Mint outside the tree instead:
+
+```sh
+python3 tools/crdkit.py generate --chart gateway-api-crds --tag v1.6.3 --out /tmp/mint
+python3 tools/crdkit.py verify   --chart gateway-api-crds --out /tmp/mint
+helm package /tmp/mint/charts/gateway-api-crds -d dist
+helm push dist/gateway-api-crds-1.6.3.tgz oci://ghcr.io/ychan-alt/charts
+```
+
+`verify --out` reads the tag from the minted `Chart.yaml`, so the older chart is
+checked against *its own* upstream asset and the repo pin is untouched. Tag the
+commit that produced a published version (`git tag gateway-api-crds-1.7.0`) so its
+source stays reachable — the registry holds every version, git holds how each was
+built.
+
 ## Updating
 
 The `sync` workflow wakes every 6 h, lists upstream tags matching the chart's
