@@ -9,7 +9,7 @@ charts:
       license: Apache-2.0
       releasesApi: https://api.github.com/repos/kubernetes-sigs/gateway-api/releases
       tagPattern: ^v(\d+\.\d+\.\d+)$
-      current: v1.7.0
+      current: v1.6.3
     assets:
       crds:
         url: https://github.com/kubernetes-sigs/gateway-api/releases/download/{tag}/standard-install.yaml
