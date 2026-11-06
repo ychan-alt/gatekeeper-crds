@@ -1,0 +1,20 @@
+apiVersion: v2
+name: gateway-api-crds
+description: CustomResourceDefinitions for Kubernetes Gateway API, standard channel
+type: application
+version: 1.7.0
+appVersion: v1.7.0
+kubeVersion: '>=1.25.0-0'
+home: https://gateway-api.sigs.k8s.io
+icon: https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/refs/heads/main/site/static/images/logo/logo.svg
+sources:
+- https://github.com/kubernetes-sigs/gateway-api
+- https://github.com/ychan-alt/gatekeeper-crds
+maintainers:
+- name: ychan-alt
+  url: https://github.com/ychan-alt
+annotations:
+  crdkit.io/upstream-repo: https://github.com/kubernetes-sigs/gateway-api
+  crdkit.io/upstream-tag: v1.7.0
+  crdkit.io/upstream-asset: https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.7.0/standard-install.yaml
+  crdkit.io/upstream-sha256: 4e2602c4cbe1afbc394d86f4ac6522e1a5263b01133bba1e40a6d1a549e753a1

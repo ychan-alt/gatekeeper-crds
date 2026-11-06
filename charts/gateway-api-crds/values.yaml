@@ -1,0 +1,2 @@
+# This chart deliberately has no values: the CRDs are vendored verbatim
+# and `helm.sh/resource-policy: keep` is baked in. See README.md.

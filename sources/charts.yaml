@@ -1,0 +1,19 @@
+charts:
+  gateway-api-crds:
+    description: CustomResourceDefinitions for Kubernetes Gateway API, standard channel
+    kubeVersion: '>=1.25.0-0'
+    upstream:
+      repo: https://github.com/kubernetes-sigs/gateway-api
+      homepage: https://gateway-api.sigs.k8s.io
+      icon: https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/refs/heads/main/site/static/images/logo/logo.svg
+      license: Apache-2.0
+      releasesApi: https://api.github.com/repos/kubernetes-sigs/gateway-api/releases
+      tagPattern: ^v(\d+\.\d+\.\d+)$
+      current: v1.7.0
+    assets:
+      crds:
+        url: https://github.com/kubernetes-sigs/gateway-api/releases/download/{tag}/standard-install.yaml
+        kinds:
+        - CustomResourceDefinition
+    conflictsWith:
+    - gateway-api-exp-crds

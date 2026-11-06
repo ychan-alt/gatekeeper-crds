@@ -1,0 +1,117 @@
+name: release
+
+# Packages every chart whose directory changed, pushes it to GHCR as an OCI
+# artifact, signs it with cosign (keyless) and records a build provenance
+# attestation. Re-publishing an existing version is skipped, not overwritten:
+# a pinned digest must not move.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+    inputs:
+      chart:
+        description: Chart name (empty = all)
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  OCI_PATH: ghcr.io/ychan-alt/charts
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.plan.outputs.charts }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        run: |
+          set -euo pipefail
+          want="${{ inputs.chart }}"
+          names=$(ls charts)
+          if [ -n "$want" ]; then names="$want"; fi
+          out=""
+          for n in $names; do
+            v=$(python3 -c "import sys,yaml;print(yaml.safe_load(open('charts/$n/Chart.yaml'))['version'])")
+            out="$out $n:$v"
+          done
+          echo "charts=$(echo $out | xargs)" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: plan
+    if: needs.plan.outputs.charts != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: ${{ fromJson(format('[{0}]', replace(needs.plan.outputs.charts, ' ', '},{'))) }}
+    permissions:
+      contents: write        # releases
+      packages: write        # GHCR
+      id-token: write        # cosign keyless (Fulcio cert)
+      attestations: write    # build provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pyyaml
+
+      - name: Prove the chart still matches upstream before publishing
+        run: |
+          set -euo pipefail
+          name="${{ matrix.chart }}"; name="${name%%:*}"
+          python3 tools/crdkit.py verify --chart "$name"
+          python3 tools/crdkit.py render-check --chart "$name"
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.22.1
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Package
+        id: package
+        run: |
+          set -euo pipefail
+          name="${{ matrix.chart }}"; name="${name%%:*}"
+          mkdir -p dist
+          helm package "charts/$name" -d dist
+          tgz=$(ls dist/"$name"-*.tgz | head -1)
+          echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Push (skip if the version already exists)
+        id: push
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name="${{ steps.package.outputs.name }}"
+          ver="$(python3 -c "import yaml;print(yaml.safe_load(open('charts/$name/Chart.yaml'))['version'])")"
+          ref="$OCI_PATH/$name:$ver"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "${{ github.token }}" | helm registry login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+          if helm show chart "oci://$OCI_PATH/$name" --version "$ver" >/dev/null 2>&1; then
+            echo "::notice::$ref already published — not overwriting"
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          helm push "${{ steps.package.outputs.tgz }}" "oci://$OCI_PATH"
+          echo "fresh=true" >> "$GITHUB_OUTPUT"
+
+      - name: Sign (cosign, keyless)
+        if: steps.push.outputs.fresh == 'true'
+        run: cosign sign --yes "${{ steps.push.outputs.ref }}"
+
+      - name: Provenance
+        if: steps.push.outputs.fresh == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ steps.push.outputs.ref }}
