@@ -311,8 +311,16 @@ def render_check(charts: dict, only: str | None, out: str | None = None) -> int:
     for name, spec in charts.items():
         if only and name != only:
             continue
-        tag = spec["upstream"]["current"]
-        log(f"{name}: rendering with {helm}")
+        chart_path = root / "charts" / name / "Chart.yaml"
+        if not chart_path.exists():
+            log(f"  FAIL no Chart.yaml at {chart_path}")
+            failures += 1
+            continue
+        # Same rule as verify: the chart names its own upstream tag, so a minted
+        # (older) chart is rendered against its own asset, not against the pin.
+        tag = str(yaml.safe_load(chart_path.read_text()).get("appVersion")
+                  or spec["upstream"]["current"])
+        log(f"{name}: rendering with {helm} (against {tag})")
         proc = subprocess.run([helm, "template", "render-check", str(root / "charts" / name)],
                               capture_output=True, text=True)
         if proc.returncode != 0:
