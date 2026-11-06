@@ -3,8 +3,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   labels:
@@ -135,8 +135,6 @@ spec:
 
 
                         * Gateway: Listener name
-
-                        * ListenerSet: Listener name
 
                         * HTTPRoute: HTTPRouteRule name
 
@@ -830,8 +828,6 @@ spec:
 
                         * Gateway: Listener name
 
-                        * ListenerSet: Listener name
-
                         * HTTPRoute: HTTPRouteRule name
 
                         * Service: Port name
@@ -1418,8 +1414,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: gatewayclasses.gateway.networking.k8s.io
@@ -1532,7 +1528,7 @@ spec:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$
                 type: string
                 x-kubernetes-validations:
-                - message: field is immutable
+                - message: Value is immutable
                   rule: self == oldSelf
               description:
                 description: Description helps describe a GatewayClass with more details.
@@ -1815,7 +1811,7 @@ spec:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$
                 type: string
                 x-kubernetes-validations:
-                - message: field is immutable
+                - message: Value is immutable
                   rule: self == oldSelf
               description:
                 description: Description helps describe a GatewayClass with more details.
@@ -2012,8 +2008,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: gateways.gateway.networking.k8s.io
@@ -3183,9 +3179,7 @@ spec:
 
                   * "Programmed"
 
-                  * "Ready"
-
-                  * "AddressesAssigned"'
+                  * "Ready"'
                 items:
                   description: Condition contains details for one aspect of the current state of this API Resource.
                   properties:
@@ -4568,9 +4562,7 @@ spec:
 
                   * "Programmed"
 
-                  * "Ready"
-
-                  * "AddressesAssigned"'
+                  * "Ready"'
                 items:
                   description: Condition contains details for one aspect of the current state of this API Resource.
                   properties:
@@ -4809,8 +4801,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: grpcroutes.gateway.networking.k8s.io
@@ -4912,7 +4904,7 @@ spec:
             description: Spec defines the desired state of GRPCRoute.
             properties:
               hostnames:
-                description: "Hostnames defines a set of hostnames to match against the GRPC\nHost header to select a GRPCRoute to process the request. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label MUST appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and GRPCRoute, there\nMUST be at least one intersecting hostname for the GRPCRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches GRPCRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches GRPCRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `test.example.com` and `*.example.com` would both match. On the other\n  hand, `example.com` and `test.example.net` would not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and GRPCRoute have specified hostnames, any\nGRPCRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nGRPCRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` MUST NOT be considered for a match.\n\nIf both the Listener and GRPCRoute have specified hostnames, and none\nmatch with the criteria above, then the GRPCRoute MUST NOT be accepted by\nthe implementation. The implementation MUST raise an 'Accepted' Condition\nwith a status of `False` in the corresponding RouteParentStatus.\n\nIn the event that multiple GRPCRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the GRPCRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nWhen multiple GRPCRoutes attach to the same Listener and yield identical\nListener/Route intersected hostnames, implementations SHOULD evaluate\nprecedence using the original hostnames configured on the Route, not the\ncalculated Listener/Route hostname intersection.\n\nResolving Route precedence using original Route hostname specificity is an\nExtended feature. Implementations that support this behavior SHOULD claim\nsupport for the `GatewayRouteHostnameIntersectionPrecedence` feature.\nImplementations that do not support this feature MAY evaluate precedence\nusing the calculated Listener/Route hostname intersection.\n\nIf a Route (A) of type HTTPRoute or GRPCRoute is attached to a\nListener and that listener already has another Route (B) of the other\ntype attached and the intersection of the hostnames of A and B is\nnon-empty, then the implementation MAY reject one of the two routes.\nAn implementation that does so MUST accept exactly one of them,\ndetermined by the following criteria, in order:\n\n* The oldest Route based on creation timestamp.\n* The Route appearing first in alphabetical order by\n  \"{namespace}/{name}\".\n\nThe rejected Route MUST raise an 'Accepted' condition with a status of\n'False' in the corresponding RouteParentStatus.\n\nSupport: Core"
+                description: "Hostnames defines a set of hostnames to match against the GRPC\nHost header to select a GRPCRoute to process the request. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label MUST appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and GRPCRoute, there\nMUST be at least one intersecting hostname for the GRPCRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches GRPCRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches GRPCRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `test.example.com` and `*.example.com` would both match. On the other\n  hand, `example.com` and `test.example.net` would not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and GRPCRoute have specified hostnames, any\nGRPCRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nGRPCRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` MUST NOT be considered for a match.\n\nIf both the Listener and GRPCRoute have specified hostnames, and none\nmatch with the criteria above, then the GRPCRoute MUST NOT be accepted by\nthe implementation. The implementation MUST raise an 'Accepted' Condition\nwith a status of `False` in the corresponding RouteParentStatus.\n\nIf a Route (A) of type HTTPRoute or GRPCRoute is attached to a\nListener and that listener already has another Route (B) of the other\ntype attached and the intersection of the hostnames of A and B is\nnon-empty, then the implementation MUST accept exactly one of these two\nroutes, determined by the following criteria, in order:\n\n* The oldest Route based on creation timestamp.\n* The Route appearing first in alphabetical order by\n  \"{namespace}/{name}\".\n\nThe rejected Route MUST raise an 'Accepted' condition with a status of\n'False' in the corresponding RouteParentStatus.\n\nSupport: Core"
                 items:
                   description: "Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be \"precise\" which is a domain name without the terminating\ndot of a network host (e.g. \"foo.example.com\") or \"wildcard\", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or '-', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed."
                   maxLength: 253
@@ -6358,8 +6350,6 @@ spec:
                 x-kubernetes-validations:
                 - message: While 16 rules and 64 matches per rule are allowed, the total number of matches across all rules in a route must be less than 128
                   rule: '(self.size() > 0 ? (has(self[0].matches) ? self[0].matches.size() : 0) : 0) + (self.size() > 1 ? (has(self[1].matches) ? self[1].matches.size() : 0) : 0) + (self.size() > 2 ? (has(self[2].matches) ? self[2].matches.size() : 0) : 0) + (self.size() > 3 ? (has(self[3].matches) ? self[3].matches.size() : 0) : 0) + (self.size() > 4 ? (has(self[4].matches) ? self[4].matches.size() : 0) : 0) + (self.size() > 5 ? (has(self[5].matches) ? self[5].matches.size() : 0) : 0) + (self.size() > 6 ? (has(self[6].matches) ? self[6].matches.size() : 0) : 0) + (self.size() > 7 ? (has(self[7].matches) ? self[7].matches.size() : 0) : 0) + (self.size() > 8 ? (has(self[8].matches) ? self[8].matches.size() : 0) : 0) + (self.size() > 9 ? (has(self[9].matches) ? self[9].matches.size() : 0) : 0) + (self.size() > 10 ? (has(self[10].matches) ? self[10].matches.size() : 0) : 0) + (self.size() > 11 ? (has(self[11].matches) ? self[11].matches.size() : 0) : 0) + (self.size() > 12 ? (has(self[12].matches) ? self[12].matches.size() : 0) : 0) + (self.size() > 13 ? (has(self[13].matches) ? self[13].matches.size() : 0) : 0) + (self.size() > 14 ? (has(self[14].matches) ? self[14].matches.size() : 0) : 0) + (self.size() > 15 ? (has(self[15].matches) ? self[15].matches.size() : 0) : 0) <= 128'
-                - message: Rule name must be unique within the route
-                  rule: self.all(l1, !has(l1.name) || self.exists_one(l2, has(l2.name) && l1.name == l2.name))
             type: object
           status:
             description: Status defines the current state of GRPCRoute.
@@ -6709,8 +6699,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: httproutes.gateway.networking.k8s.io
@@ -6769,7 +6759,7 @@ spec:
             description: Spec defines the desired state of HTTPRoute.
             properties:
               hostnames:
-                description: "Hostnames defines a set of hostnames that should match against the HTTP Host\nheader to select a HTTPRoute used to process the request. Implementations\nMUST ignore any port value specified in the HTTP Host header while\nperforming a match and (absent of any applicable header modification\nconfiguration) MUST forward this header unmodified to the backend.\n\nValid values for Hostnames are determined by RFC 1123 definition of a\nhostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and HTTPRoute, there\nmust be at least one intersecting hostname for the HTTPRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `*.example.com`, `test.example.com`, and `foo.test.example.com` would\n  all match. On the other hand, `example.com` and `test.example.net` would\n  not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and HTTPRoute have specified hostnames, any\nHTTPRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nHTTPRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` must not be considered for a match.\n\nIf both the Listener and HTTPRoute have specified hostnames, and none\nmatch with the criteria above, then the HTTPRoute is not accepted. The\nimplementation must raise an 'Accepted' Condition with a status of\n`False` in the corresponding RouteParentStatus.\n\nIn the event that multiple HTTPRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the HTTPRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nWhen multiple HTTPRoutes attach to the same Listener and yield identical\nListener/Route intersected hostnames, implementations SHOULD evaluate\nprecedence using the original hostnames configured on the Route, not the\ncalculated Listener/Route hostname intersection.\n\nResolving Route precedence using original Route hostname specificity is an\nExtended feature. Implementations that support this behavior SHOULD claim\nsupport for the `GatewayRouteHostnameIntersectionPrecedence` feature.\nImplementations that do not support this feature MAY evaluate precedence\nusing the calculated Listener/Route hostname intersection.\n\nSupport: Core"
+                description: "Hostnames defines a set of hostnames that should match against the HTTP Host\nheader to select a HTTPRoute used to process the request. Implementations\nMUST ignore any port value specified in the HTTP Host header while\nperforming a match and (absent of any applicable header modification\nconfiguration) MUST forward this header unmodified to the backend.\n\nValid values for Hostnames are determined by RFC 1123 definition of a\nhostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and HTTPRoute, there\nmust be at least one intersecting hostname for the HTTPRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `*.example.com`, `test.example.com`, and `foo.test.example.com` would\n  all match. On the other hand, `example.com` and `test.example.net` would\n  not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and HTTPRoute have specified hostnames, any\nHTTPRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nHTTPRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` must not be considered for a match.\n\nIf both the Listener and HTTPRoute have specified hostnames, and none\nmatch with the criteria above, then the HTTPRoute is not accepted. The\nimplementation must raise an 'Accepted' Condition with a status of\n`False` in the corresponding RouteParentStatus.\n\nIn the event that multiple HTTPRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the HTTPRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nIf ties exist across multiple Routes, the matching precedence rules for\nHTTPRouteMatches takes over.\n\nSupport: Core"
                 items:
                   description: "Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be \"precise\" which is a domain name without the terminating\ndot of a network host (e.g. \"foo.example.com\") or \"wildcard\", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or '-', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed."
                   maxLength: 253
@@ -9559,153 +9549,6 @@ spec:
                       minLength: 1
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
                       type: string
-                    retry:
-                      description: 'Retry defines the configuration for when to retry an HTTP request.
-
-
-                        A request is retried when attempts is greater than 0 and the backend did
-
-                        not process it. This is the case when the connection could not be
-
-                        established, or when the backend explicitly rejected the request, either
-
-                        before processing it or with one of the configured status codes.
-
-
-                        Support: Extended'
-                      properties:
-                        attempts:
-                          default: 1
-                          description: 'Attempts specifies the maximum number of times an individual request
-
-                            from the Gateway to a backend should be retried in addition to the
-
-                            initial request.
-
-
-                            If the maximum number of retries has been attempted without a successful
-
-                            response from the backend, the Gateway MUST return an error.
-
-
-                            An explicit zero value MUST disable retries.
-
-
-                            Support: Extended'
-                          minimum: 0
-                          type: integer
-                        backoff:
-                          description: 'Backoff specifies the base interval for a backoff strategy between
-
-                            retry attempts and is represented in Gateway API Duration formatting.
-
-                            The duration a Gateway waits before a retry attempt is determined
-
-                            by the base interval and the implementation''s retry strategy.
-
-
-                            Implementations MAY add random jitter and MAY cap the delay at an
-
-                            implementation-defined maximum, which SHOULD NOT be less than the base
-
-                            interval. The precise backoff curve and jitter calculation are
-
-                            implementation-specific and not exposed in the Gateway API specification.
-
-                            Implementations typically apply exponential backoff with jitter to
-
-                            mitigate thundering-herd issues.
-
-
-                            If a Request timeout (`rules[].timeouts.request`) is configured on the
-
-                            route, the entire duration of the initial request and any retry attempts
-
-                            MUST not exceed the Request timeout duration. If any retry attempts are
-
-                            still in progress when the Request timeout duration has been reached,
-
-                            these SHOULD be canceled if possible and the Gateway MUST immediately
-
-                            return a timeout error.
-
-
-                            If a BackendRequest timeout (`rules[].timeouts.backendRequest`) is
-
-                            configured on the route, any retry attempts which reach the configured
-
-                            BackendRequest timeout duration without a response SHOULD be canceled if
-
-                            possible and the Gateway SHOULD schedule the next retry attempt according
-
-                            to the configured backoff.
-
-
-                            If a BackendRequest timeout is _not_ configured on the route, retry
-
-                            attempts MAY time out after an implementation default duration, or MAY
-
-                            remain pending until a configured Request timeout or implementation
-
-                            default duration for total request time is reached.
-
-
-                            When this field is unspecified, the backoff strategy and base interval
-
-                            are implementation-specific.
-
-
-                            Implementations which retry immediately with no backoff MUST NOT advertise
-
-                            support for this field and MUST set the Accepted Condition for the Route
-
-                            to `status: False` with a Reason of `UnsupportedValue` when this field is
-
-                            set.
-
-
-                            Support: Implementation-specific'
-                          pattern: ^([0-9]{1,5}(h|m|s|ms)){1,4}$
-                          type: string
-                        codes:
-                          description: 'Codes defines the HTTP response status codes for which a backend request
-
-                            should be retried.
-
-
-                            Support: Extended'
-                          items:
-                            description: 'HTTPRouteRetryStatusCode defines an HTTP response status code for
-
-                              which a backend request should be retried.
-
-
-                              Implementations MUST support the following status codes as retriable:
-
-
-                              * 500
-
-                              * 502
-
-                              * 503
-
-                              * 504
-
-
-                              Implementations MAY support specifying additional discrete values in the
-
-                              500-599 range.
-
-
-                              Implementations MAY support specifying discrete values in the 400-499 range,
-
-                              which are often inadvisable to retry.'
-                            maximum: 599
-                            minimum: 400
-                            type: integer
-                          type: array
-                          x-kubernetes-list-type: set
-                      type: object
                     timeouts:
                       description: 'Timeouts defines the timeouts that can be configured for an HTTP request.
 
@@ -9810,8 +9653,6 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
                 x-kubernetes-validations:
-                - message: Rule name must be unique within the route
-                  rule: self.all(l1, !has(l1.name) || self.exists_one(l2, has(l2.name) && l1.name == l2.name))
                 - message: While 16 rules and 64 matches per rule are allowed, the total number of matches across all rules in a route must be less than 128
                   rule: '(self.size() > 0 ? self[0].matches.size() : 0) + (self.size() > 1 ? self[1].matches.size() : 0) + (self.size() > 2 ? self[2].matches.size() : 0) + (self.size() > 3 ? self[3].matches.size() : 0) + (self.size() > 4 ? self[4].matches.size() : 0) + (self.size() > 5 ? self[5].matches.size() : 0) + (self.size() > 6 ? self[6].matches.size() : 0) + (self.size() > 7 ? self[7].matches.size() : 0) + (self.size() > 8 ? self[8].matches.size() : 0) + (self.size() > 9 ? self[9].matches.size() : 0) + (self.size() > 10 ? self[10].matches.size() : 0) + (self.size() > 11 ? self[11].matches.size() : 0) + (self.size() > 12 ? self[12].matches.size() : 0) + (self.size() > 13 ? self[13].matches.size() : 0) + (self.size() > 14 ? self[14].matches.size() : 0) + (self.size() > 15 ? self[15].matches.size() : 0) <= 128'
             type: object
@@ -10202,7 +10043,7 @@ spec:
             description: Spec defines the desired state of HTTPRoute.
             properties:
               hostnames:
-                description: "Hostnames defines a set of hostnames that should match against the HTTP Host\nheader to select a HTTPRoute used to process the request. Implementations\nMUST ignore any port value specified in the HTTP Host header while\nperforming a match and (absent of any applicable header modification\nconfiguration) MUST forward this header unmodified to the backend.\n\nValid values for Hostnames are determined by RFC 1123 definition of a\nhostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and HTTPRoute, there\nmust be at least one intersecting hostname for the HTTPRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `*.example.com`, `test.example.com`, and `foo.test.example.com` would\n  all match. On the other hand, `example.com` and `test.example.net` would\n  not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and HTTPRoute have specified hostnames, any\nHTTPRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nHTTPRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` must not be considered for a match.\n\nIf both the Listener and HTTPRoute have specified hostnames, and none\nmatch with the criteria above, then the HTTPRoute is not accepted. The\nimplementation must raise an 'Accepted' Condition with a status of\n`False` in the corresponding RouteParentStatus.\n\nIn the event that multiple HTTPRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the HTTPRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nWhen multiple HTTPRoutes attach to the same Listener and yield identical\nListener/Route intersected hostnames, implementations SHOULD evaluate\nprecedence using the original hostnames configured on the Route, not the\ncalculated Listener/Route hostname intersection.\n\nResolving Route precedence using original Route hostname specificity is an\nExtended feature. Implementations that support this behavior SHOULD claim\nsupport for the `GatewayRouteHostnameIntersectionPrecedence` feature.\nImplementations that do not support this feature MAY evaluate precedence\nusing the calculated Listener/Route hostname intersection.\n\nSupport: Core"
+                description: "Hostnames defines a set of hostnames that should match against the HTTP Host\nheader to select a HTTPRoute used to process the request. Implementations\nMUST ignore any port value specified in the HTTP Host header while\nperforming a match and (absent of any applicable header modification\nconfiguration) MUST forward this header unmodified to the backend.\n\nValid values for Hostnames are determined by RFC 1123 definition of a\nhostname with 2 notable exceptions:\n\n1. IPs are not allowed.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\nIf a hostname is specified by both the Listener and HTTPRoute, there\nmust be at least one intersecting hostname for the HTTPRoute to be\nattached to the Listener. For example:\n\n* A Listener with `test.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames, or have specified at\n  least one of `test.example.com` or `*.example.com`.\n* A Listener with `*.example.com` as the hostname matches HTTPRoutes\n  that have either not specified any hostnames or have specified at least\n  one hostname that matches the Listener hostname. For example,\n  `*.example.com`, `test.example.com`, and `foo.test.example.com` would\n  all match. On the other hand, `example.com` and `test.example.net` would\n  not match.\n\nHostnames that are prefixed with a wildcard label (`*.`) are interpreted\nas a suffix match. That means that a match for `*.example.com` would match\nboth `test.example.com`, and `foo.test.example.com`, but not `example.com`.\n\nIf both the Listener and HTTPRoute have specified hostnames, any\nHTTPRoute hostnames that do not match the Listener hostname MUST be\nignored. For example, if a Listener specified `*.example.com`, and the\nHTTPRoute specified `test.example.com` and `test.example.net`,\n`test.example.net` must not be considered for a match.\n\nIf both the Listener and HTTPRoute have specified hostnames, and none\nmatch with the criteria above, then the HTTPRoute is not accepted. The\nimplementation must raise an 'Accepted' Condition with a status of\n`False` in the corresponding RouteParentStatus.\n\nIn the event that multiple HTTPRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the HTTPRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nIf ties exist across multiple Routes, the matching precedence rules for\nHTTPRouteMatches takes over.\n\nSupport: Core"
                 items:
                   description: "Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be \"precise\" which is a domain name without the terminating\ndot of a network host (e.g. \"foo.example.com\") or \"wildcard\", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or '-', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed."
                   maxLength: 253
@@ -12992,153 +12833,6 @@ spec:
                       minLength: 1
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
                       type: string
-                    retry:
-                      description: 'Retry defines the configuration for when to retry an HTTP request.
-
-
-                        A request is retried when attempts is greater than 0 and the backend did
-
-                        not process it. This is the case when the connection could not be
-
-                        established, or when the backend explicitly rejected the request, either
-
-                        before processing it or with one of the configured status codes.
-
-
-                        Support: Extended'
-                      properties:
-                        attempts:
-                          default: 1
-                          description: 'Attempts specifies the maximum number of times an individual request
-
-                            from the Gateway to a backend should be retried in addition to the
-
-                            initial request.
-
-
-                            If the maximum number of retries has been attempted without a successful
-
-                            response from the backend, the Gateway MUST return an error.
-
-
-                            An explicit zero value MUST disable retries.
-
-
-                            Support: Extended'
-                          minimum: 0
-                          type: integer
-                        backoff:
-                          description: 'Backoff specifies the base interval for a backoff strategy between
-
-                            retry attempts and is represented in Gateway API Duration formatting.
-
-                            The duration a Gateway waits before a retry attempt is determined
-
-                            by the base interval and the implementation''s retry strategy.
-
-
-                            Implementations MAY add random jitter and MAY cap the delay at an
-
-                            implementation-defined maximum, which SHOULD NOT be less than the base
-
-                            interval. The precise backoff curve and jitter calculation are
-
-                            implementation-specific and not exposed in the Gateway API specification.
-
-                            Implementations typically apply exponential backoff with jitter to
-
-                            mitigate thundering-herd issues.
-
-
-                            If a Request timeout (`rules[].timeouts.request`) is configured on the
-
-                            route, the entire duration of the initial request and any retry attempts
-
-                            MUST not exceed the Request timeout duration. If any retry attempts are
-
-                            still in progress when the Request timeout duration has been reached,
-
-                            these SHOULD be canceled if possible and the Gateway MUST immediately
-
-                            return a timeout error.
-
-
-                            If a BackendRequest timeout (`rules[].timeouts.backendRequest`) is
-
-                            configured on the route, any retry attempts which reach the configured
-
-                            BackendRequest timeout duration without a response SHOULD be canceled if
-
-                            possible and the Gateway SHOULD schedule the next retry attempt according
-
-                            to the configured backoff.
-
-
-                            If a BackendRequest timeout is _not_ configured on the route, retry
-
-                            attempts MAY time out after an implementation default duration, or MAY
-
-                            remain pending until a configured Request timeout or implementation
-
-                            default duration for total request time is reached.
-
-
-                            When this field is unspecified, the backoff strategy and base interval
-
-                            are implementation-specific.
-
-
-                            Implementations which retry immediately with no backoff MUST NOT advertise
-
-                            support for this field and MUST set the Accepted Condition for the Route
-
-                            to `status: False` with a Reason of `UnsupportedValue` when this field is
-
-                            set.
-
-
-                            Support: Implementation-specific'
-                          pattern: ^([0-9]{1,5}(h|m|s|ms)){1,4}$
-                          type: string
-                        codes:
-                          description: 'Codes defines the HTTP response status codes for which a backend request
-
-                            should be retried.
-
-
-                            Support: Extended'
-                          items:
-                            description: 'HTTPRouteRetryStatusCode defines an HTTP response status code for
-
-                              which a backend request should be retried.
-
-
-                              Implementations MUST support the following status codes as retriable:
-
-
-                              * 500
-
-                              * 502
-
-                              * 503
-
-                              * 504
-
-
-                              Implementations MAY support specifying additional discrete values in the
-
-                              500-599 range.
-
-
-                              Implementations MAY support specifying discrete values in the 400-499 range,
-
-                              which are often inadvisable to retry.'
-                            maximum: 599
-                            minimum: 400
-                            type: integer
-                          type: array
-                          x-kubernetes-list-type: set
-                      type: object
                     timeouts:
                       description: 'Timeouts defines the timeouts that can be configured for an HTTP request.
 
@@ -13243,8 +12937,6 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
                 x-kubernetes-validations:
-                - message: Rule name must be unique within the route
-                  rule: self.all(l1, !has(l1.name) || self.exists_one(l2, has(l2.name) && l1.name == l2.name))
                 - message: While 16 rules and 64 matches per rule are allowed, the total number of matches across all rules in a route must be less than 128
                   rule: '(self.size() > 0 ? self[0].matches.size() : 0) + (self.size() > 1 ? self[1].matches.size() : 0) + (self.size() > 2 ? self[2].matches.size() : 0) + (self.size() > 3 ? self[3].matches.size() : 0) + (self.size() > 4 ? self[4].matches.size() : 0) + (self.size() > 5 ? self[5].matches.size() : 0) + (self.size() > 6 ? self[6].matches.size() : 0) + (self.size() > 7 ? self[7].matches.size() : 0) + (self.size() > 8 ? self[8].matches.size() : 0) + (self.size() > 9 ? self[9].matches.size() : 0) + (self.size() > 10 ? self[10].matches.size() : 0) + (self.size() > 11 ? self[11].matches.size() : 0) + (self.size() > 12 ? self[12].matches.size() : 0) + (self.size() > 13 ? self[13].matches.size() : 0) + (self.size() > 14 ? self[14].matches.size() : 0) + (self.size() > 15 ? self[15].matches.size() : 0) <= 128'
             type: object
@@ -13596,8 +13288,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: listenersets.gateway.networking.k8s.io
@@ -14367,8 +14059,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: referencegrants.gateway.networking.k8s.io
@@ -14792,8 +14484,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: tcproutes.gateway.networking.k8s.io
@@ -16309,8 +16001,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: tlsroutes.gateway.networking.k8s.io
@@ -16369,7 +16061,7 @@ spec:
             description: Spec defines the desired state of TLSRoute.
             properties:
               hostnames:
-                description: "Hostnames defines a set of SNI hostnames that should match against the\nSNI attribute of TLS ClientHello message in TLS handshake. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed in SNI hostnames per RFC 6066.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\n\nIn the event that multiple TLSRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the TLSRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nWhen multiple TLSRoutes attach to the same Listener and yield identical\nListener/Route intersected hostnames, implementations SHOULD evaluate\nprecedence using the original hostnames configured on the Route, not the\ncalculated Listener/Route hostname intersection.\n\nResolving Route precedence using original Route hostname specificity is an\nExtended feature. Implementations that support this behavior SHOULD claim\nsupport for the `GatewayRouteHostnameIntersectionPrecedence` feature.\nImplementations that do not support this feature MAY evaluate precedence\nusing the calculated Listener/Route hostname intersection."
+                description: "Hostnames defines a set of SNI hostnames that should match against the\nSNI attribute of TLS ClientHello message in TLS handshake. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed in SNI hostnames per RFC 6066.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label."
                 items:
                   description: "Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be \"precise\" which is a domain name without the terminating\ndot of a network host (e.g. \"foo.example.com\") or \"wildcard\", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or '-', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed."
                   maxLength: 253
@@ -17945,7 +17637,7 @@ spec:
             description: Spec defines the desired state of TLSRoute.
             properties:
               hostnames:
-                description: "Hostnames defines a set of SNI hostnames that should match against the\nSNI attribute of TLS ClientHello message in TLS handshake. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed in SNI hostnames per RFC 6066.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label.\n\n\nIn the event that multiple TLSRoutes specify intersecting hostnames (e.g.\noverlapping wildcard matching and exact matching hostnames), precedence must\nbe given to rules from the TLSRoute with the largest number of:\n\n* Characters in a matching non-wildcard hostname.\n* Characters in a matching hostname.\n\nWhen multiple TLSRoutes attach to the same Listener and yield identical\nListener/Route intersected hostnames, implementations SHOULD evaluate\nprecedence using the original hostnames configured on the Route, not the\ncalculated Listener/Route hostname intersection.\n\nResolving Route precedence using original Route hostname specificity is an\nExtended feature. Implementations that support this behavior SHOULD claim\nsupport for the `GatewayRouteHostnameIntersectionPrecedence` feature.\nImplementations that do not support this feature MAY evaluate precedence\nusing the calculated Listener/Route hostname intersection."
+                description: "Hostnames defines a set of SNI hostnames that should match against the\nSNI attribute of TLS ClientHello message in TLS handshake. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n1. IPs are not allowed in SNI hostnames per RFC 6066.\n2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n   label must appear by itself as the first label."
                 items:
                   description: "Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be \"precise\" which is a domain name without the terminating\ndot of a network host (e.g. \"foo.example.com\") or \"wildcard\", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or '-', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed."
                   maxLength: 253
@@ -18699,8 +18391,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/5371
-    gateway.networking.k8s.io/bundle-version: v1.7.0
+    api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
+    gateway.networking.k8s.io/bundle-version: v1.6.3
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: udproutes.gateway.networking.k8s.io
