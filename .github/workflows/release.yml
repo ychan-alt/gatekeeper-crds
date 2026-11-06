@@ -151,7 +151,16 @@ jobs:
 
       - name: Sign (cosign, keyless)
         if: steps.push.outputs.fresh == 'true'
-        run: cosign sign --yes "${{ steps.push.outputs.ref }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # `helm registry login` writes to Helm's own credential store, which
+          # cosign does not read — it uses the Docker config. Without this, the
+          # signature upload fails with UNAUTHORIZED while the chart push works.
+          echo "${{ secrets.GHCR_TOKEN || github.token }}" \
+            | cosign login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+          cosign sign --yes "${{ steps.push.outputs.ref }}"
 
       - name: Provenance
         if: steps.push.outputs.fresh == 'true'
