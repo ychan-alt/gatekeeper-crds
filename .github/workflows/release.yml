@@ -133,6 +133,9 @@ jobs:
           set -e
           if [ "$rc" -eq 0 ]; then
             echo "fresh=true" >> "$GITHUB_OUTPUT"
+            digest="$(grep -oE 'Digest: sha256:[a-f0-9]{64}' /tmp/push.log | head -1 | awk '{print $2}')"
+            echo "digest=$digest" >> "$GITHUB_OUTPUT"
+            echo "published $ref ($digest)"
           elif grep -qiE 'already exists|conflict' /tmp/push.log; then
             echo "::notice::$ref already exists in the registry — not overwriting (a pinned digest must not move)"
             echo "fresh=false" >> "$GITHUB_OUTPUT"
@@ -167,3 +170,4 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ steps.push.outputs.ref }}
+          subject-digest: ${{ steps.push.outputs.digest }}
